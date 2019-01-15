@@ -2,6 +2,7 @@
 
 """Represent the servers/messages/members that a Discord token can access
 as simple SQL database"""
+
 import datetime
 
 from pony.orm import Database, PrimaryKey, Required, Set, Optional
@@ -9,32 +10,35 @@ from pony.orm import Database, PrimaryKey, Required, Set, Optional
 db = Database()
 
 
-class DBMember(db.Entity):
+class Member(db.Entity):
     id = PrimaryKey(str)
     name = Required(str)
-    messages = Set("DBMessage", reverse="author")
-    mentions = Set("DBMessage", reverse="mentions")
+    messages = Set("Message", reverse="author")
+    mentions = Set("Message", reverse="mentions")
 
 
-class DBServer(db.Entity):
+class Server(db.Entity):
     id = PrimaryKey(str)
     name = Required(str)
-    channels = Set("DBChannel")
+    channels = Set("Channel")
 
 
-class DBChannel(db.Entity):
+class Channel(db.Entity):
     id = PrimaryKey(str)
     name = Required(str)
-    server = Required(DBServer)
-    messages = Set("DBMessage", reverse="channel")
+    server = Required(Server)
+    messages = Set("Message", reverse="channel")
 
 
-class DBMessage(db.Entity):
-    author = Required(DBMember)
-    content = Optional(str)
+class Message(db.Entity):
+    id = Required(str)
+    author = Required(Member)
     timestamp = Required(datetime.datetime)
-    channel = Optional(DBChannel)
-    mentions = Set("DBMember", reverse="mentions")
+    type = Required(int)
+    content = Optional(str)
+    channel = Optional(Channel)
+    mentions = Set("Member", reverse="mentions")
+    PrimaryKey(id, type)
 
 
 def get_or_create(model, defaults=None, **params):
