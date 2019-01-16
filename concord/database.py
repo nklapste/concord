@@ -38,6 +38,7 @@ class Message(db.Entity):
     content = Optional(str)
     channel = Optional(Channel)
     mentions = Set("Member", reverse="mentions")
+    attributes = Optional(str)
     PrimaryKey(id, type)
 
 
