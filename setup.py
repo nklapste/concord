@@ -76,6 +76,8 @@ setup(
     include_package_data=True,
     install_requires=[
         "discord.py",
+        "flask",
+        "flask-restplus",
         "dash",
         "dash-html-components",
         "dash-core-components",
