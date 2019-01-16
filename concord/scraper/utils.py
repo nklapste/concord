@@ -24,7 +24,8 @@ def run_discord_sync(token: str, timeout: float = None, bot: bool = True):
             @client.event
             async def on_ready():
                 try:
-                    sync_discord_result.result = await func(client, *args, **kwargs)
+                    sync_discord_result.result = \
+                        await func(client, *args, **kwargs)
                 except Exception as error:
                     sync_discord_result.exception = error
                 client.close()
@@ -33,7 +34,8 @@ def run_discord_sync(token: str, timeout: float = None, bot: bool = True):
             loop.run_until_complete(client.login(token, bot=bot))
             try:
                 loop.run_until_complete(
-                    asyncio.wait_for(client.connect(), timeout=timeout, loop=loop))
+                    asyncio.wait_for(client.connect(), timeout=timeout,
+                                     loop=loop))
             except asyncio.TimeoutError:
                 sync_discord_result.timed_out = True
             except RuntimeError as e:
@@ -43,9 +45,13 @@ def run_discord_sync(token: str, timeout: float = None, bot: bool = True):
 
             if sync_discord_result.timed_out:
                 import logging
-                logging.error("function {} timed out after {} seconds".format(func, timeout))
+                logging.error(
+                    "function {} timed out after {} seconds".format(func,
+                                                                    timeout))
             if sync_discord_result.exception is not None:
                 raise sync_discord_result.exception
             return sync_discord_result.result
+
         return func_wrapper
+
     return run_discord_sync_wrapper

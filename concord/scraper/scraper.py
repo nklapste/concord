@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from logging import getLogger
+
 from discord import Message, Channel, Server, MessageType
 from discord.client import Forbidden, NotFound, HTTPException
 from pony.orm import db_session
@@ -8,12 +9,9 @@ from pony.orm import db_session
 from concord.database import Member as DBMember, Server as DBServer, \
     Channel as DBChannel, Message as DBMessage, get_or_create, db
 from concord.nlp_dev import get_doc_entity
-
-from concord.utils import run_discord_sync
-
+from concord.scraper.utils import run_discord_sync
 
 __log__ = getLogger(__name__)
-
 
 with open('..\\token.txt') as f:
     token = f.read().strip()
@@ -53,7 +51,8 @@ async def iter_server_messages(client, limit: int = 10):
                         channel=db_channel,
                         type=message.type.value if isinstance(message.type, MessageType) else message.type,
                         content=message.content,
-                        attributes=str(sorted(list(get_doc_entity(str(message.content))))),
+                        attributes=str(sorted(
+                            list(get_doc_entity(str(message.content))))),
                         timestamp=message.timestamp,
                     )
                     for mentioned_member in message.mentions:
