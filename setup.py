@@ -91,6 +91,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
+            "concord-scraper = concord.scraper.__main__:main",
             "concord-server = concord.server.__main__:main",
         ],
     },

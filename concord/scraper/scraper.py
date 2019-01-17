@@ -2,66 +2,76 @@
 
 from logging import getLogger
 
-from discord import Message, Channel, Server, MessageType
 from discord.client import Forbidden, NotFound, HTTPException
-from pony.orm import db_session
 
-from concord.database import Member as DBMember, Server as DBServer, \
-    Channel as DBChannel, Message as DBMessage, get_or_create, db
-from concord.nlp_dev import get_doc_entity
+# from concord.nlp_dev import get_doc_entity
 from concord.scraper.utils import run_discord_sync
 
 __log__ = getLogger(__name__)
 
-with open('..\\token.txt') as f:
+with open('token.txt') as f:
     token = f.read().strip()
 
 
-@db_session
 @run_discord_sync(token=token, timeout=None, bot=False)
-async def iter_server_messages(client, limit: int = 10):
+async def iter_server_messages_v2(client, db, limit: int = 10):
+    from concord.server.server import Server, Member, Channel, Message
+
+    def get_or_create(session, model, **kwargs):
+        instance = session.query(model).filter_by(**kwargs).first()
+        if instance:
+            return instance
+        else:
+            instance = model(**kwargs)
+            session.add(instance)
+            session.commit()
+            return instance
+
     for server in client.servers:
-        server: Server = server
+        server = server
         db_server = get_or_create(
-            DBServer,
+            db.session,
+            Server,
             id=server.id,
             name=server.name
         )
         for channel in server.channels:
-            channel: Channel = channel
+            channel = channel
             db_channel = get_or_create(
-                DBChannel,
+                db.session,
+                Channel,
                 name=channel.name,
                 id=channel.id,
-                server=db_server
+                server=server.id
             )
+
             try:
                 async for message in client.logs_from(channel, limit=limit):
-                    message: Message = message
+                    message = message
                     __log__.info('checking message {}'.format(message.content))
                     db_member = get_or_create(
-                        DBMember,
+                        db.session,
+                        Member,
                         id=message.author.id,
                         name=message.author.name
                     )
                     db_message = get_or_create(
-                        DBMessage,
+                        db.session,
+                        Message,
                         id=message.id,
-                        author=db_member,
+                        author=message.author.id,
                         channel=db_channel,
-                        type=message.type.value if isinstance(message.type, MessageType) else message.type,
+                        # channel_id=channel.id,
                         content=message.content,
-                        attributes=str(sorted(
-                            list(get_doc_entity(str(message.content))))),
                         timestamp=message.timestamp,
                     )
                     for mentioned_member in message.mentions:
                         db_member = get_or_create(
-                            DBMember,
+                            db.session,
+                            Member,
                             id=mentioned_member.id,
                             name=mentioned_member.name
                         )
-                        db_message.mentions.add(db_member)
                     # TODO: enable when discordpy hits 1.0.0
                     # for reactions in message.reactions:
                     #     for reacting_member in reactions.users():
@@ -72,9 +82,3 @@ async def iter_server_messages(client, limit: int = 10):
                 pass
             except HTTPException:  # discord likely down
                 pass
-
-
-# TODO: dev testing
-db.bind(provider='sqlite', filename='database.sqlite', create_db=True)
-db.generate_mapping(create_tables=True)
-iter_server_messages(200)
