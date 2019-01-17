@@ -8,23 +8,35 @@
 html, body {
     background-color: #2C2F33;
     height: 100%;
-    width: 100%;
-    margin: 0;
 	font-family: Whitney, Helvetica Neue, Helvetica, Arial, sans-serif;
     color: #FFFFFF;
-
-}
-
-
-.flex-centered {
-    display: flex;
-    justify-items: center;
-    justify-content: center;
+	display: flex;
+	flex-direction: column;
 }
 
 form {
     margin: auto;
 }
+
+
+footer {
+	text-align: center;
+  	flex-shrink: 0;
+
+}
+html, body {
+  height: 100%;
+}
+
+.content {
+  flex: 1 0 auto;
+}
+
+
+.flex-centered {
+    display: flex;
+}
+
 
 .project-name {
     color: #FFFFFF;
@@ -118,6 +130,15 @@ form {
 	z-index: 1;
 }
 
+.icon {
+	text-decoration: none;
+	border-bottom: none;
+	position: relative;
+	color: #ffffff;
+	cursor: default;
+
+}
+
 .icon:hover:before {
 	-moz-transform: translateZ(1em);
 	-webkit-transform: translateZ(1em);
@@ -127,17 +148,6 @@ form {
 
 .icon:hover:after {
 	opacity: 1;
-}
-
-.icon {
-	cursor: default;
-}
-
-.icon {
-	text-decoration: none;
-	border-bottom: none;
-	position: relative;
-	color: #ffffff;
 }
 
 .icon:before {
@@ -235,17 +245,4 @@ ul.actions.vertical li:first-child {
 
 ul {
 	padding-left: 0;
-}
-
-footer {
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    background-attachment: scroll;
-	background-position: top center;
-	background-repeat: repeat-x;
-	padding: calc(15px + 6em) 0 0 0;
-	position: relative;
-	text-align: center;
-    overflow: no-display;
 }

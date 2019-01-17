@@ -11,39 +11,47 @@
     <link href="../static/css/main.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-<div class="flex-centered">
-    <h2 class="project-name">CONCORD</h2>
+<div class="content">
+    <div>
+        <h2 class="project-name">CONCORD</h2>
+    </div>
+    <div>
+        <p class="slogan">Visualize Your Discord Server</p>
+    </div>
+    <div class="flex-centered">
+        <form id="form" class="token-form">
+            <p>
+                <input class="discord-input" required id="token" name="token"
+                       placeholder="Discord Token"/>
+            </p>
+            <p>
+                <input class="discord-input" required id="server_name"
+                       name="server_name"
+                       placeholder="Discord Server Name"/>
+            </p>
+            <p>
+                <input class="discord-button" type="submit"
+                       value="Lets Get Visual"/>
+            </p>
+        </form>
+    </div>
 </div>
-<div class="flex-centered">
-    <p class="slogan">Visualize Your Discord Server</p>
-</div>
-<div class="flex-centered">
-    <form id="form" class="token-form">
-        <p>
-            <input class="discord-input" required id="token" name="token"
-                   placeholder="Discord Token"/>
-        </p>
-        <p>
-            <input class="discord-input" required id="server_name"
-                   name="server_name"
-                   placeholder="Discord Server Name"/>
-        </p>
-        <p style="justify-content: center;display: flex;">
-            <input class="discord-button button-colors" type="submit"
-                   value="Lets Get Visual"/>
-        </p>
-    </form>
-</div>
-
-<footer>
-<p>Copyright © 2018 Nathan Klapstein</p>
- <div class="footer flex-centered">
-    <ul class="icons">
-        <li><a href="https://www.facebook.com/nathan.klapstein" class="icon fa-facebook"><span class="label">Facebook</span></a></li>
-        <li><a href="https://github.com/nklapste" class="icon fa-github"><span class="label">Github</span></a></li>
-        <li><a href="https://www.linkedin.com/in/nathan-klapstein-61612a134/" class="icon fa-linkedin"><span class="label">Linkedin</span></a></li>
-    </ul>
-</div>
+<footer class="footer">
+    <p>Copyright © 2018 Nathan Klapstein</p>
+    <div>
+        <ul class="icons">
+            <li><a href="https://www.facebook.com/nathan.klapstein"
+                   class="icon fa-facebook"><span class="label">Facebook</span></a>
+            </li>
+            <li><a href="https://github.com/nklapste"
+                   class="icon fa-github"><span class="label">Github</span></a>
+            </li>
+            <li>
+                <a href="https://www.linkedin.com/in/nathan-klapstein-61612a134/"
+                   class="icon fa-linkedin"><span class="label">Linkedin</span></a>
+            </li>
+        </ul>
+    </div>
 </footer>
 </body>
 </html>
