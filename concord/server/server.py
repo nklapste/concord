@@ -20,6 +20,10 @@ from sqlalchemy import func
 
 from concord import __version__
 
+from threading import Thread
+
+from concord.scraper.scraper import iter_server_messages_v2
+
 __log__ = getLogger(__name__)
 
 APP = Flask(__name__)
@@ -90,7 +94,7 @@ DASH.layout = html.Div(
                     },
                 ],
                 'layout': {
-                    'title': 'Dash Data Visualization'
+                    'title': 'Dash Data Visualization',
                 }
             }
         ),
@@ -106,9 +110,7 @@ DASH.layout = html.Div(
 @DASH.callback(Output('live-update-graph', 'figure'),
               [Input('interval-component', 'n_intervals')])
 def update_graph_live(n):
-    # TODO:  change to a line graph and add discord message data
-
-    messages = list(db.session.query(func.count(Message.id),Member.name).join(Member).group_by(Member.name))
+    messages = list(db.session.query(func.count(Message.id), Member.name).join(Member).group_by(Member.name))
     return {
                 'data': [
                     {
@@ -127,8 +129,6 @@ def update_graph_live(n):
 @APP.route('/dash', methods=['GET', 'POST'])
 def dash_one():
     db.create_all()
-
-    # iter_server_messages_v2(db, 200)
     db.session.commit()
     return DASH.index()
 
@@ -162,13 +162,17 @@ connections_parser.add_argument('timeout', type=float,
 graph_url_model = API.model('graphURL', {"graphURL": fields.String})
 
 
-@API.route('/api/graph')
+@API.route('/api/login')
 @API.expect(connections_parser)
 class GetConnectionsGraph(Resource):
     @API.marshal_with(graph_url_model, code=201, description='Object created')
     def post(self):
         args = connections_parser.parse_args()
-        return {"graphURL": "dooot"}, 201
+        db.create_all()
+        # TODO: init custom db for each token
+        t = Thread(target=iter_server_messages_v2, args=[db, 100], daemon=True)
+        t.start()
+        return {"graphURL": "/dash"}, 201
 
 
 if __name__ == '__main__':

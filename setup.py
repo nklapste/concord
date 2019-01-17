@@ -79,6 +79,7 @@ setup(
         "cheroot",
         "flask",
         "flask-restplus",
+        "flask-sqlalchemy",
         "dash",
         "dash-html-components",
         "dash-core-components",
