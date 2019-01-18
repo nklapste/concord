@@ -7,65 +7,44 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
     <link href="../static/css/main.css" rel="stylesheet" type="text/css">
 </head>
-<body>
-<div class="content">
+<body class="content">
+<div style="height: 100%">
     <h2 class="project-name">CONCORD</h2>
     <p class="slogan">Visualize Your Discord Server</p>
-    <div class="flex-centered">
-        <form id="form" class="token-form" onsubmit="return postToken();">
-            <p>
-                <input class="discord-input" required id="token" name="token"
-                       placeholder="Discord Token"/>
-            </p>
-            <p>
-                <input class="discord-input" required id="server_name"
-                       name="server_name"
-                       placeholder="Discord Server Name"/>
-            </p>
-            <p>
-                <input class="discord-button" type="submit"
-                       value="Lets Get Visual"/>
-            </p>
-        </form>
-        <script>
-            function postToken() {
-                var xhr = new XMLHttpRequest();
-                var url = "/api/login";
-                var data = "token=" + document.getElementById("token").value +
-                    "&server_name=" + document.getElementById("server_name").value;
-                xhr.open("POST", url, true);
-                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState === 4 && xhr.status === 201) {
-                        const jsonResponse = JSON.parse(xhr.responseText);
-                        setTimeout(document.location = jsonResponse.graphURL, 4000);
-                    }
-                };
-                xhr.send(data);
-                return false;
-            }
-        </script>
-    </div>
+    <form id="form" class="token-form" onsubmit="return postToken();">
+        <p>
+            <input class="discord-input" required id="token" name="token"
+                   placeholder="Discord Token"/>
+        </p>
+        <p>
+            <input class="discord-input" required id="server_name"
+                   name="server_name"
+                   placeholder="Discord Server Name"/>
+        </p>
+        <p>
+            <input class="discord-button" type="submit"
+                   value="Lets Get Visual"/>
+        </p>
+    </form>
+    <script src="../static/js/login.js" rel="script" type="text/js"></script>
+    <iframe src="/dashboard" id="frameid" class="dashboard-iframe"></iframe>
 </div>
 <footer class="footer">
     <p>Copyright © 2018 Nathan Klapstein</p>
-    <div>
-        <ul class="icons">
-            <li><a href="https://www.facebook.com/nathan.klapstein"
-                   class="icon fa-facebook"><span class="label">Facebook</span></a>
-            </li>
-            <li><a href="https://github.com/nklapste"
-                   class="icon fa-github"><span class="label">Github</span></a>
-            </li>
-            <li>
-                <a href="https://www.linkedin.com/in/nathan-klapstein-61612a134/"
-                   class="icon fa-linkedin"><span class="label">Linkedin</span></a>
-            </li>
-        </ul>
-    </div>
+    <ul class="icons">
+        <li><a href="https://www.facebook.com/nathan.klapstein"
+               class="icon fa-facebook"><span class="label">Facebook</span></a>
+        </li>
+        <li><a href="https://github.com/nklapste"
+               class="icon fa-github"><span class="label">Github</span></a>
+        </li>
+        <li>
+            <a href="https://www.linkedin.com/in/nathan-klapstein-61612a134/"
+               class="icon fa-linkedin"><span class="label">Linkedin</span></a>
+        </li>
+    </ul>
 </footer>
 </body>
 </html>
