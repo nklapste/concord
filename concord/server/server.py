@@ -5,7 +5,7 @@
 
 TODO: implement
 """
-
+import os
 from logging import getLogger
 from threading import Thread
 
@@ -13,7 +13,7 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory
 from flask_restplus import Api, reqparse, Resource, fields
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
@@ -72,13 +72,17 @@ def index():
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-DASH = dash.Dash(__name__, server=APP, external_stylesheets=external_stylesheets)
+DASH = dash.Dash(__name__, server=APP)
 
 
 DASH.layout = html.Div(
     children=[
-        html.H1(children='Concord'),
-        html.Div(children='Visualize Your Discord Server'),
+        html.Link(
+            rel='stylesheet',
+            href='/static/css/main.css'
+        ),
+        html.H1(children='Concord', className="project-name"),
+        html.P(children='Visualize Your Discord Server', className="slogan"),
         dcc.Graph(
             id='member-messages-graph',
             figure={
@@ -189,6 +193,16 @@ def update_timeline_messages(n):
     },
 }
 
+
+DASH.config.suppress_callback_exceptions = True
+DASH.css.config.serve_locally = True
+DASH.scripts.config.serve_locally = True
+
+
+@APP.route('/static/<path:path>')
+def static_file(path):
+    static_folder = os.path.join(os.getcwd(), 'static')
+    return send_from_directory(static_folder, path)
 
 ##################
 # api backend
