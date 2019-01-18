@@ -7,21 +7,18 @@ TODO: implement
 """
 
 from logging import getLogger
+from threading import Thread
 
-from flask import Flask, render_template
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-
+from flask import Flask, render_template
 from flask_restplus import Api, reqparse, Resource, fields
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 
 from concord import __version__
-
-from threading import Thread
-
 from concord.scraper.scraper import iter_server_messages_v2
 
 __log__ = getLogger(__name__)
@@ -100,9 +97,36 @@ DASH.layout = html.Div(
         ),
         dcc.Interval(
             id='interval-component',
-            interval=1 * 1000,  # in milliseconds
+            interval=10 * 1000,  # in milliseconds
             n_intervals=0
-        )
+        ),
+        dcc.Graph(
+            id='message-timeline-graph',
+            figure={
+                'data': [
+                    {
+                        'y': [],
+                        'x': [],
+                        'type': 'scatter',
+                        'name': 'SF'
+                    },
+                ],
+                'layout': {
+                    'title': 'Dash Data Visualization',
+                    'xaxis': {
+                        'title': 'Datetime'
+                    },
+                    'yaxis': {
+                         'title': 'Number of Messages'
+                    }
+                }
+            }
+        ),
+        dcc.Interval(
+            id='interval-message-timeline-graph',
+            interval=10 * 1000,  # in milliseconds
+            n_intervals=0
+        ),
     ]
 )
 
@@ -112,18 +136,24 @@ DASH.layout = html.Div(
 def update_graph_live(n):
     messages = list(db.session.query(func.count(Message.id), Member.name).join(Member).group_by(Member.name))
     return {
-                'data': [
-                    {
-                        'y': [str(m[0]) for m in messages],
-                        'x': [m[1] for m in messages],
-                        'type': 'bar',
-                        'name': 'SF'
-                    },
-                ],
-                'layout': {
-                    'title': 'Dash Data Visualization'
-                }
-            }
+    'data': [
+        {
+            'y': [str(m[0]) for m in messages],
+            'x': [m[1] for m in messages],
+            'type': 'bar',
+            'name': 'SF'
+        },
+    ],
+    'layout': {
+        'title': 'Messages per Member',
+        'xaxis': {
+            'title': 'Member'
+        },
+        'yaxis': {
+            'title': 'Number of Messages'
+        }
+    },
+}
 
 
 @APP.route('/dash', methods=['GET', 'POST'])
@@ -133,30 +163,32 @@ def dash_one():
     return DASH.index()
 
 
-@APP.route('/timeline', methods=['GET'])
-def dash_messages_line():
-    messages = list(db.session.query(func.count(Message.id),
-                          Message.timestamp).group_by(func.strftime("%Y-%m-%d-%H:00:00.000", Message.timestamp)))
-    DASH.layout = html.Div(
-    children=[
-        html.H1(children='Concord'),
-        html.Div(children='Visualize Your Discord Server'),
-        dcc.Graph(
-            id='message-timeline-graph',
-            figure={
-                'data': [
-                    {
-                        'y': [str(m[0]) for m in messages],
-                        'x': [m[1] for m in messages],
-                        'type': 'scatter',
-                        'name': 'SF'
-                    },
-                ],
-                'layout': {
-                    'title': 'Dash Data Visualization'
-                }
-            })])
-    return DASH.index()
+@DASH.callback(Output('message-timeline-graph', 'figure'),
+              [Input('interval-message-timeline-graph', 'n_intervals')])
+def update_timeline_messages(n):
+    messages = \
+        list(db.session.query(func.count(Message.id), Message.timestamp)
+             .group_by(func.strftime("%Y-%m-%d-%H:00:00.000", Message.timestamp)))
+    return {
+    'data': [
+        {
+            'y': [str(m[0]) for m in messages],
+            'x': [m[1] for m in messages],
+            'type': 'scatter',
+            'name': 'SF'
+        },
+    ],
+    'layout': {
+        'title': 'Messages Timeline',
+        'xaxis': {
+            'title': 'Datetime'
+        },
+        'yaxis': {
+            'title': 'Number of Messages'
+        }
+    },
+}
+
 
 ##################
 # api backend
