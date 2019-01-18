@@ -133,6 +133,31 @@ def dash_one():
     return DASH.index()
 
 
+@APP.route('/timeline', methods=['GET'])
+def dash_messages_line():
+    messages = list(db.session.query(func.count(Message.id),
+                          Message.timestamp).group_by(func.strftime("%Y-%m-%d-%H:00:00.000", Message.timestamp)))
+    DASH.layout = html.Div(
+    children=[
+        html.H1(children='Concord'),
+        html.Div(children='Visualize Your Discord Server'),
+        dcc.Graph(
+            id='message-timeline-graph',
+            figure={
+                'data': [
+                    {
+                        'y': [str(m[0]) for m in messages],
+                        'x': [m[1] for m in messages],
+                        'type': 'scatter',
+                        'name': 'SF'
+                    },
+                ],
+                'layout': {
+                    'title': 'Dash Data Visualization'
+                }
+            })])
+    return DASH.index()
+
 ##################
 # api backend
 ##################
