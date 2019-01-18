@@ -161,7 +161,7 @@ def update_graph_live(n):
 
 
 @APP.route('/dashboard', methods=['GET', 'POST'])
-def dasboard():
+def dashboard():
     db.create_all()
     db.session.commit()
     return DASH.index()
