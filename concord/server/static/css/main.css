@@ -80,9 +80,20 @@ html, body {
     -webkit-box-shadow: 0 4px 14px 0 rgba(#000000 .4);
     -webkit-transform: translate3d(0,-1px,0);
     box-shadow: 0 4px 14px 0 rgba(#000000 .4);
-    transform: translate3d(0,-1px,0);
-
+    background-color: #677bc4;
 }
+
+.discord-button:active{
+	-webkit-box-shadow: 0 4px 14px 0 rgba(#000000 .4);
+    -webkit-transform: translate3d(0,2px,0);
+    box-shadow: 0 4px 14px 0 rgba(#000000 .4);
+    background-color: #677bc4;
+}
+
+.discord-button.success{
+	background-color:#43b581
+}
+
 .discord-input {
     background-color: rgba(0,0,0,.1);
     border-color: rgba(0,0,0,.3);
