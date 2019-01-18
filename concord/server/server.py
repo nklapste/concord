@@ -80,7 +80,7 @@ DASH.layout = html.Div(
         html.H1(children='Concord'),
         html.Div(children='Visualize Your Discord Server'),
         dcc.Graph(
-            id='live-update-graph',
+            id='member-messages-graph',
             figure={
                 'data': [
                     {
@@ -131,7 +131,7 @@ DASH.layout = html.Div(
 )
 
 
-@DASH.callback(Output('live-update-graph', 'figure'),
+@DASH.callback(Output('member-messages-graph', 'figure'),
               [Input('interval-component', 'n_intervals')])
 def update_graph_live(n):
     messages = list(db.session.query(func.count(Message.id), Member.name).join(Member).group_by(Member.name))
@@ -156,8 +156,8 @@ def update_graph_live(n):
 }
 
 
-@APP.route('/dash', methods=['GET', 'POST'])
-def dash_one():
+@APP.route('/dashboard', methods=['GET', 'POST'])
+def dasboard():
     db.create_all()
     db.session.commit()
     return DASH.index()
