@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """Flask server definition"""
+
 import os
 from logging import getLogger
 from threading import Thread
