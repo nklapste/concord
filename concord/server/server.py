@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Flask server definition
-
-TODO: implement
-"""
+"""Flask server definition"""
 import os
 from logging import getLogger
 from threading import Thread
@@ -77,12 +74,6 @@ DASH = dash.Dash(__name__, server=APP)
 
 DASH.layout = html.Div(
     children=[
-        html.Link(
-            rel='stylesheet',
-            href='/static/css/main.css'
-        ),
-        html.H1(children='Concord', className="project-name"),
-        html.P(children='Visualize Your Discord Server', className="slogan"),
         dcc.Graph(
             id='member-messages-graph',
             figure={
