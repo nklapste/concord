@@ -13,30 +13,18 @@
 <div style="height: 100%">
     <h2 class="project-name">CONCORD</h2>
     <p class="slogan">Visualize Your Discord Server</p>
+    <iframe src="/dashboard" id="frameid" class="dashboard-iframe"></iframe>
     <form id="form" class="token-form" onsubmit="return postToken();">
-        <p>
-            <input class="discord-input" required id="token" name="token"
-                   placeholder="Discord Token"/>
-        </p>
-        <p>
-            <input class="discord-input" required id="server_name"
-                   name="server_name"
-                   placeholder="Discord Server Name"/>
-        </p>
+        <p class="join-question">Want to visualize your Discord server?</p>
         <p>
             <input class="discord-button" type="submit"
                    value="Lets Get Visual"/>
         </p>
     </form>
-    <script src="../static/js/login.js" rel="script" type="text/js"></script>
-    <iframe src="/dashboard" id="frameid" class="dashboard-iframe"></iframe>
 </div>
 <footer class="footer">
     <p>Copyright © 2018 Nathan Klapstein</p>
     <ul class="icons">
-        <li><a href="https://www.facebook.com/nathan.klapstein"
-               class="icon fa-facebook"><span class="label">Facebook</span></a>
-        </li>
         <li><a href="https://github.com/nklapste"
                class="icon fa-github"><span class="label">Github</span></a>
         </li>
