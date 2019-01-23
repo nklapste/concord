@@ -82,20 +82,13 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 DASH = dash.Dash(__name__, server=APP)
 
-all_options = [
-{'label': 'New York City', 'value': 'NYC'},
-                {'label': 'Montréal', 'value': 'MTL'},
-                {'label': 'San Francisco', 'value': 'SF'}
-]
+
 DASH.layout = html.Div(
     children=[
         dcc.Dropdown(
-            id='countries-dropdown',
-            options=[
-
-            ],
+            id='discord-server-dropdown',
+            options=[{}],
             multi=False,
-            value="MTL"
         ),
         dcc.DatePickerRange(
             id='message-date-picker-range',
@@ -154,26 +147,30 @@ DASH.layout = html.Div(
 )
 
 
-@DASH.callback(
-    dash.dependencies.Output('countries-dropdown', 'options'),
-    [Input('interval-component', 'n_intervals')])
-def set_cities_options(n):
-    return all_options
+@DASH.callback(Output('discord-server-dropdown', 'options'),
+               [Input('interval-component', 'n_intervals')])
+def set_discord_server_options(n):
+    servers = list(db.session.query(Server.name, Server.id))
+    if servers:
+        return [{"label": "{} (id: {})".format(name, id), "value": id} for name, id in servers]
+    else:
+        return [{}]
 
 
 @DASH.callback(Output('member-messages-graph', 'figure'),
                [Input('interval-component', 'n_intervals'),
-                dash.dependencies.Input('message-date-picker-range',
-                                        'start_date'),
-                dash.dependencies.Input('message-date-picker-range',
-                                        'end_date')
-                ])
-def update_graph_live(n, start_date, end_date):
+                Input('message-date-picker-range', 'start_date'),
+                Input('message-date-picker-range', 'end_date'),
+                Input("discord-server-dropdown", 'value')])
+def update_graph_live(n, start_date, end_date, discord_server_id):
     messages = list(db.session.query(func.count(Message.id), Member.name)
                     .join(Member)
+                    .join(Channel)
+                    .join(Server)
                     .filter(
                         func.date(Message.timestamp) >= start_date,
-                        func.date(Message.timestamp) <= end_date)
+                        func.date(Message.timestamp) <= end_date,
+                        Server.id == discord_server_id)
                     .group_by(Member.name))
     return {
         'data': [
@@ -198,16 +195,17 @@ def update_graph_live(n, start_date, end_date):
 
 @DASH.callback(Output('message-timeline-graph', 'figure'),
                [Input('interval-message-timeline-graph', 'n_intervals'),
-                dash.dependencies.Input('message-date-picker-range',
-                                        'start_date'),
-                dash.dependencies.Input('message-date-picker-range',
-                                        'end_date')
-                ])
-def update_timeline_messages(n, start_date, end_date):
+                Input('message-date-picker-range', 'start_date'),
+                Input('message-date-picker-range', 'end_date'),
+                Input("discord-server-dropdown", 'value')])
+def update_timeline_messages(n, start_date, end_date, discord_server_id):
     messages = list(db.session.query(func.count(Message.id), Message.timestamp)
+                    .join(Channel)
+                    .join(Server)
                     .filter(
                         func.date(Message.timestamp) >= start_date,
-                        func.date(Message.timestamp) <= end_date)
+                        func.date(Message.timestamp) <= end_date,
+                        Server.id == discord_server_id)
                     .group_by(func.strftime("%Y-%m-%d-%H:00:00.000", Message.timestamp)))
     return {
         'data': [
