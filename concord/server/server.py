@@ -13,17 +13,15 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 from flask import Flask, render_template, send_from_directory
-from flask_restplus import Api, reqparse, Resource, fields
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 
-from concord import __version__
 from concord.scraper.scraper import iter_server_messages_v2
 
 __log__ = getLogger(__name__)
 
 APP = Flask(__name__)
-APP.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+APP.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test2.db'
 db = SQLAlchemy(APP)
 
 
@@ -80,7 +78,7 @@ def static_file(path):
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-DASH = dash.Dash(__name__, server=APP)
+DASH = dash.Dash(__name__, server=APP, external_stylesheets=external_stylesheets)
 
 
 DASH.layout = html.Div(
@@ -113,7 +111,7 @@ DASH.layout = html.Div(
         ),
         dcc.Interval(
             id='interval-component',
-            interval=10 * 1000,  # in milliseconds
+            interval=1 * 1000,  # in milliseconds
             n_intervals=0
         ),
         dcc.Graph(
@@ -140,7 +138,7 @@ DASH.layout = html.Div(
         ),
         dcc.Interval(
             id='interval-message-timeline-graph',
-            interval=10 * 1000,  # in milliseconds
+            interval=1 * 1000,  # in milliseconds
             n_intervals=0
         ),
     ]
@@ -237,49 +235,7 @@ DASH.scripts.config.serve_locally = True
 def dashboard():
     db.create_all()
     db.session.commit()
+    # TODO: need smarter way to init the database and keep it updated
+    t = Thread(target=iter_server_messages_v2, args=[db, 1000], daemon=True)
+    t.start()
     return DASH.index()
-
-
-##################
-# api backend
-##################
-
-
-API = Api(
-    APP,
-    version="{}.{}.{}".format(*__version__),
-    title='Concord API',
-    doc='/api/doc',
-)
-
-connections_parser = reqparse.RequestParser()
-connections_parser.add_argument('token', type=str, help='User Discord token')
-connections_parser.add_argument('server_name', type=str,
-                                help="Name of the Discord server to collect "
-                                     "messages from")
-connections_parser.add_argument('messages_number', type=int,
-                                default=30,
-                                help="Number of Discord messages to collect")
-connections_parser.add_argument('timeout', type=float,
-                                default=30,
-                                help="Time to collect Discord messages before "
-                                     "stopping")
-
-graph_url_model = API.model('graphURL', {"graphURL": fields.String})
-
-
-@API.route('/api/login')
-@API.expect(connections_parser)
-class GetConnectionsGraph(Resource):
-    @API.marshal_with(graph_url_model, code=201, description='Object created')
-    def post(self):
-        args = connections_parser.parse_args()
-        db.create_all()
-        # TODO: init custom db for each token
-        t = Thread(target=iter_server_messages_v2, args=[db, 100], daemon=True)
-        t.start()
-        return {"graphURL": "/dash"}, 201
-
-
-if __name__ == '__main__':
-    APP.run(host='localhost', port=8080, debug=True)

@@ -78,7 +78,6 @@ setup(
         "discord.py",
         "cheroot",
         "flask",
-        "flask-restplus",
         "flask-sqlalchemy",
         "dash",
         "dash-html-components",
