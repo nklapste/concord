@@ -81,6 +81,24 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 DASH = dash.Dash(__name__, server=APP, external_stylesheets=external_stylesheets)
 
 
+slider_dates = {
+    0: "year",
+    1: "month",
+    2: "Day",
+    3: "Hour",
+    4: "Minute",
+    5: "Second"
+}
+
+date_bins = {
+    0: "%Y",
+    1: "%Y-%m",
+    2: "%Y-%m-%d",
+    3: "%Y-%m-%d-%H",
+    4: "%Y-%m-%d-%H:%M",
+    5: "%Y-%m-%d-%H:%M:%S"
+}
+
 DASH.layout = html.Div(
     children=[
         dcc.Dropdown(
@@ -109,11 +127,15 @@ DASH.layout = html.Div(
                 }
             }
         ),
-        dcc.Interval(
-            id='interval-component',
-            interval=1 * 1000,  # in milliseconds
-            n_intervals=0
-        ),
+        html.Div(
+            children=[
+# dcc.Slider(
+#             id="date-binning-slider",
+#             min=0,
+#             max=5,
+#             marks=slider_dates,
+#             value=2,
+#         ),
         dcc.Graph(
             id='message-timeline-graph',
             figure={
@@ -136,18 +158,16 @@ DASH.layout = html.Div(
                 }
             }
         ),
-        dcc.Interval(
-            id='interval-message-timeline-graph',
-            interval=1 * 1000,  # in milliseconds
-            n_intervals=0
+            ]
         ),
+
     ]
 )
 
 
 @DASH.callback(Output('discord-server-dropdown', 'options'),
-               [Input('interval-component', 'n_intervals')])
-def set_discord_server_options(n):
+               [Input('discord-server-dropdown', 'value')])
+def set_discord_server_options(v):
     servers = list(db.session.query(Server.name, Server.id))
     if servers:
         return [{"label": "{} (id: {})".format(name, id), "value": id} for name, id in servers]
@@ -156,11 +176,10 @@ def set_discord_server_options(n):
 
 
 @DASH.callback(Output('member-messages-graph', 'figure'),
-               [Input('interval-component', 'n_intervals'),
-                Input('message-date-picker-range', 'start_date'),
+               [Input('message-date-picker-range', 'start_date'),
                 Input('message-date-picker-range', 'end_date'),
                 Input("discord-server-dropdown", 'value')])
-def update_graph_live(n, start_date, end_date, discord_server_id):
+def update_graph_live(start_date, end_date, discord_server_id):
     messages = list(db.session.query(func.count(Message.id), Member.name)
                     .join(Member)
                     .join(Channel)
@@ -192,11 +211,12 @@ def update_graph_live(n, start_date, end_date, discord_server_id):
 
 
 @DASH.callback(Output('message-timeline-graph', 'figure'),
-               [Input('interval-message-timeline-graph', 'n_intervals'),
-                Input('message-date-picker-range', 'start_date'),
+               [Input('message-date-picker-range', 'start_date'),
                 Input('message-date-picker-range', 'end_date'),
-                Input("discord-server-dropdown", 'value')])
-def update_timeline_messages(n, start_date, end_date, discord_server_id):
+                Input("discord-server-dropdown", 'value'),
+                ])
+def update_timeline_messages(start_date, end_date, discord_server_id):
+    # TODO: integrate slider
     messages = list(db.session.query(func.count(Message.id), Message.timestamp)
                     .join(Channel)
                     .join(Server)
@@ -204,7 +224,7 @@ def update_timeline_messages(n, start_date, end_date, discord_server_id):
                         func.date(Message.timestamp) >= start_date,
                         func.date(Message.timestamp) <= end_date,
                         Server.id == discord_server_id)
-                    .group_by(func.strftime("%Y-%m-%d-%H:00:00.000", Message.timestamp)))
+                    .group_by(func.strftime(date_bins[3], Message.timestamp)))
     return {
         'data': [
             {
