@@ -96,7 +96,7 @@ date_bins = {
     2: "%Y-%m-%d",
     3: "%Y-%m-%d-%H",
     4: "%Y-%m-%d-%H:%M",
-    5: "%Y-%m-%d-%H:%M:%S"
+    5: "%Y-%m-%d-%H:%M:%S"  # TODO: does not work very well should remove?
 }
 
 DASH.layout = html.Div(
