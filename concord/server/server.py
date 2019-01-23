@@ -82,8 +82,21 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 DASH = dash.Dash(__name__, server=APP)
 
+all_options = [
+{'label': 'New York City', 'value': 'NYC'},
+                {'label': 'Montréal', 'value': 'MTL'},
+                {'label': 'San Francisco', 'value': 'SF'}
+]
 DASH.layout = html.Div(
     children=[
+        dcc.Dropdown(
+            id='countries-dropdown',
+            options=[
+
+            ],
+            multi=False,
+            value="MTL"
+        ),
         dcc.DatePickerRange(
             id='message-date-picker-range',
             end_date=datetime.utcnow(),
@@ -139,6 +152,13 @@ DASH.layout = html.Div(
         ),
     ]
 )
+
+
+@DASH.callback(
+    dash.dependencies.Output('countries-dropdown', 'options'),
+    [Input('interval-component', 'n_intervals')])
+def set_cities_options(n):
+    return all_options
 
 
 @DASH.callback(Output('member-messages-graph', 'figure'),
