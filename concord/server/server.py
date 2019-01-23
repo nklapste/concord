@@ -4,6 +4,7 @@
 """Flask server definition"""
 
 import os
+from datetime import datetime
 from logging import getLogger
 from threading import Thread
 
@@ -40,14 +41,17 @@ class Server(db.Model):
 class Channel(db.Model):
     id = db.Column(db.String(80), primary_key=True)
     name = db.Column(db.String(80), nullable=False)
-    server = db.Column(db.String(80), db.ForeignKey('server.id'), nullable=False)
+    server = db.Column(db.String(80), db.ForeignKey('server.id'),
+                       nullable=False)
 
 
 class Message(db.Model):
     id = db.Column(db.String(80), primary_key=True)
-    author = db.Column(db.String(80), db.ForeignKey('member.id'), nullable=False)
+    author = db.Column(db.String(80), db.ForeignKey('member.id'),
+                       nullable=False)
     timestamp = db.Column(db.DateTime)
-    channel_id = db.Column(db.String(80), db.ForeignKey('channel.id'), nullable=False)
+    channel_id = db.Column(db.String(80), db.ForeignKey('channel.id'),
+                           nullable=False)
     channel = db.relationship('Channel', backref='channel_messages', lazy=True)
     content = db.Column(db.UnicodeText(), nullable=True)
 
@@ -63,6 +67,12 @@ def index():
     return render_template('index.html')
 
 
+@APP.route('/static/<path:path>')
+def static_file(path):
+    static_folder = os.path.join(os.getcwd(), 'static')
+    return send_from_directory(static_folder, path)
+
+
 ##################
 # dash frontend
 ##################
@@ -72,9 +82,15 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 DASH = dash.Dash(__name__, server=APP)
 
-
 DASH.layout = html.Div(
     children=[
+        html.H1(children='Concord'),
+        html.Div(children='Visualize Your Discord Server'),
+        dcc.DatePickerRange(
+            id='message-date-picker-range',
+            end_date=datetime.utcnow(),
+            start_date=datetime(2015, 5, 13)  # discord launch date
+        ),
         dcc.Graph(
             id='member-messages-graph',
             figure={
@@ -113,7 +129,7 @@ DASH.layout = html.Div(
                         'title': 'Datetime'
                     },
                     'yaxis': {
-                         'title': 'Number of Messages'
+                        'title': 'Number of Messages'
                     }
                 }
             }
@@ -128,28 +144,77 @@ DASH.layout = html.Div(
 
 
 @DASH.callback(Output('member-messages-graph', 'figure'),
-              [Input('interval-component', 'n_intervals')])
-def update_graph_live(n):
-    messages = list(db.session.query(func.count(Message.id), Member.name).join(Member).group_by(Member.name))
+               [Input('interval-component', 'n_intervals'),
+                dash.dependencies.Input('message-date-picker-range',
+                                        'start_date'),
+                dash.dependencies.Input('message-date-picker-range',
+                                        'end_date')
+                ])
+def update_graph_live(n, start_date, end_date):
+    messages = list(db.session.query(func.count(Message.id), Member.name)
+                    .join(Member)
+                    .filter(
+                        func.date(Message.timestamp) >= start_date,
+                        func.date(Message.timestamp) <= end_date)
+                    .group_by(Member.name))
     return {
-    'data': [
-        {
-            'y': [str(m[0]) for m in messages],
-            'x': [m[1] for m in messages],
-            'type': 'bar',
-            'name': 'SF'
+        'data': [
+            {
+                'y': [str(m[0]) for m in messages],
+                'x': [m[1] for m in messages],
+                'type': 'bar',
+                'name': 'SF'
+            },
+        ],
+        'layout': {
+            'title': 'Messages per Member',
+            'xaxis': {
+                'title': 'Member'
+            },
+            'yaxis': {
+                'title': 'Number of Messages'
+            }
         },
-    ],
-    'layout': {
-        'title': 'Messages per Member',
-        'xaxis': {
-            'title': 'Member'
+    }
+
+
+@DASH.callback(Output('message-timeline-graph', 'figure'),
+               [Input('interval-message-timeline-graph', 'n_intervals'),
+                dash.dependencies.Input('message-date-picker-range',
+                                        'start_date'),
+                dash.dependencies.Input('message-date-picker-range',
+                                        'end_date')
+                ])
+def update_timeline_messages(n, start_date, end_date):
+    messages = list(db.session.query(func.count(Message.id), Message.timestamp)
+                    .filter(
+                        func.date(Message.timestamp) >= start_date,
+                        func.date(Message.timestamp) <= end_date)
+                    .group_by(func.strftime("%Y-%m-%d-%H:00:00.000", Message.timestamp)))
+    return {
+        'data': [
+            {
+                'y': [str(m[0]) for m in messages],
+                'x': [m[1] for m in messages],
+                'type': 'scatter',
+                'name': 'SF'
+            },
+        ],
+        'layout': {
+            'title': 'Messages Timeline',
+            'xaxis': {
+                'title': 'Datetime'
+            },
+            'yaxis': {
+                'title': 'Number of Messages'
+            }
         },
-        'yaxis': {
-            'title': 'Number of Messages'
-        }
-    },
-}
+    }
+
+
+DASH.config.suppress_callback_exceptions = True
+DASH.css.config.serve_locally = True
+DASH.scripts.config.serve_locally = True
 
 
 @APP.route('/dashboard', methods=['GET', 'POST'])
@@ -158,43 +223,6 @@ def dashboard():
     db.session.commit()
     return DASH.index()
 
-
-@DASH.callback(Output('message-timeline-graph', 'figure'),
-              [Input('interval-message-timeline-graph', 'n_intervals')])
-def update_timeline_messages(n):
-    messages = \
-        list(db.session.query(func.count(Message.id), Message.timestamp)
-             .group_by(func.strftime("%Y-%m-%d-%H:00:00.000", Message.timestamp)))
-    return {
-    'data': [
-        {
-            'y': [str(m[0]) for m in messages],
-            'x': [m[1] for m in messages],
-            'type': 'scatter',
-            'name': 'SF'
-        },
-    ],
-    'layout': {
-        'title': 'Messages Timeline',
-        'xaxis': {
-            'title': 'Datetime'
-        },
-        'yaxis': {
-            'title': 'Number of Messages'
-        }
-    },
-}
-
-
-DASH.config.suppress_callback_exceptions = True
-DASH.css.config.serve_locally = True
-DASH.scripts.config.serve_locally = True
-
-
-@APP.route('/static/<path:path>')
-def static_file(path):
-    static_folder = os.path.join(os.getcwd(), 'static')
-    return send_from_directory(static_folder, path)
 
 ##################
 # api backend
@@ -220,7 +248,6 @@ connections_parser.add_argument('timeout', type=float,
                                 default=30,
                                 help="Time to collect Discord messages before "
                                      "stopping")
-
 
 graph_url_model = API.model('graphURL', {"graphURL": fields.String})
 
