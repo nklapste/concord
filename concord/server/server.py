@@ -84,8 +84,6 @@ DASH = dash.Dash(__name__, server=APP)
 
 DASH.layout = html.Div(
     children=[
-        html.H1(children='Concord'),
-        html.Div(children='Visualize Your Discord Server'),
         dcc.DatePickerRange(
             id='message-date-picker-range',
             end_date=datetime.utcnow(),
