@@ -101,17 +101,28 @@ DASH.layout = html.Div(
         "overflow-x": "hidden"
     },
     children=[
-        dcc.Dropdown(
-            id='discord-server-dropdown',
-            options=[{}],
-            multi=True,
-            placeholder="Select a Discord Server..."
+        html.Div(
+            children=[
+                html.H3(children=["Discord Server"]),
+                dcc.Dropdown(
+                    id='discord-server-dropdown',
+                    options=[{}],
+                    multi=True,
+                    placeholder="Select a Discord Server...",
+                ),
+                html.H3(children=["Message Date Range"]),
+                dcc.DatePickerRange(
+                    id='message-date-picker-range',
+                    end_date=datetime.utcnow(),
+                    start_date=datetime(2015, 5, 13)  # discord launch date
+                ),
+            ],
+            style={
+                "padding-left": "2em",
+                "padding-right": "2em"
+            }
         ),
-        dcc.DatePickerRange(
-            id='message-date-picker-range',
-            end_date=datetime.utcnow(),
-            start_date=datetime(2015, 5, 13)  # discord launch date
-        ),
+
         dcc.Graph(
             id='member-messages-graph',
             figure={
@@ -124,49 +135,59 @@ DASH.layout = html.Div(
                     },
                 ],
                 'layout': {
-                    'title': 'Dash Data Visualization',
-                }
-            }
-        ),
-        html.Div(
-            children=[
-                dcc.Slider(
-                    id="date-binning-slider",
-                    min=0,
-                    max=5,
-                    marks=slider_dates,
-                    value=2,
-                ),
-            ],
-            style={
-                "margin-top": "2em",
-                "margin-bottom": "2em",
-                "padding-left": "2em",
-                "padding-right": "2em"
-            }
-        ),
-
-        dcc.Graph(
-            id='message-timeline-graph',
-            figure={
-                'data': [
-                    {
-                        'y': [],
-                        'x': [],
-                        'type': 'scatter',
-                        'name': 'SF'
-                    },
-                ],
-                'layout': {
-                    'title': 'Dash Data Visualization',
+                    'title': 'Messages per Member',
                     'xaxis': {
-                        'title': 'Datetime'
+                        'title': 'Member'
                     },
                     'yaxis': {
                         'title': 'Number of Messages'
                     }
                 }
             }
+        ),
+
+        html.Div(
+            children=[
+                dcc.Graph(
+                    id='message-timeline-graph',
+                    figure={
+                        'data': [
+                            {
+                                'y': [],
+                                'x': [],
+                                'type': 'scatter',
+                                'name': 'SF'
+                            },
+                        ],
+                        'layout': {
+                            'title': 'Messages per Datetime',
+                            'xaxis': {
+                                'title': 'Datetime'
+                            },
+                            'yaxis': {
+                                'title': 'Number of Messages'
+                            }
+                        }
+                    }
+                ),
+                html.Div(
+                    children=[
+                        html.H3(children=["Message Datetime Bin Size"]),
+                        dcc.Slider(
+                            id="date-binning-slider",
+                            min=0,
+                            max=5,
+                            marks=slider_dates,
+                            value=2,
+                        ),
+                    ],
+                    style={
+                        "margin-bottom": "2em",
+                        "padding-left": "2em",
+                        "padding-right": "2em"
+                    }
+                ),
+            ]
         ),
     ]
 )
@@ -216,7 +237,7 @@ def update_graph_live(start_date, end_date, discord_server_id):
             'yaxis': {
                 'title': 'Number of Messages'
             }
-        },
+        }
     }
 
 
@@ -246,14 +267,14 @@ def update_timeline_messages(start_date, end_date, discord_server_id, bin):
             },
         ],
         'layout': {
-            'title': 'Messages Timeline',
+            'title': 'Messages per Datetime',
             'xaxis': {
                 'title': 'Datetime'
             },
             'yaxis': {
                 'title': 'Number of Messages'
             }
-        },
+        }
     }
 
 
