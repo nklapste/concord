@@ -199,8 +199,7 @@ def set_discord_server_options(v):
     servers = list(db.session.query(Server.name, Server.id))
     if servers:
         return [{"label": "{} (id: {})".format(name, id), "value": id} for name, id in servers]
-    else:
-        return [{}]
+    return [{}]
 
 
 @DASH.callback(Output('member-messages-graph', 'figure'),
