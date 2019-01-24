@@ -14,6 +14,13 @@ body, html {
     height: 100%
 }
 
+.text-link {
+    color: aqua;
+}
+.text-link:visited {
+    color: fuchsia;
+}
+
 .content {
     flex: 1 content;
     margin: auto 0;
