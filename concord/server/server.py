@@ -100,11 +100,14 @@ date_bins = {
 }
 
 DASH.layout = html.Div(
+    style={
+        "overflow-x": "hidden"
+    },
     children=[
         dcc.Dropdown(
             id='discord-server-dropdown',
             options=[{}],
-            multi=False,
+            multi=True,
         ),
         dcc.DatePickerRange(
             id='message-date-picker-range',
@@ -127,15 +130,13 @@ DASH.layout = html.Div(
                 }
             }
         ),
-        html.Div(
-            children=[
-# dcc.Slider(
-#             id="date-binning-slider",
-#             min=0,
-#             max=5,
-#             marks=slider_dates,
-#             value=2,
-#         ),
+        dcc.Slider(
+            id="date-binning-slider",
+            min=0,
+            max=5,
+            marks=slider_dates,
+            value=2,
+        ),
         dcc.Graph(
             id='message-timeline-graph',
             figure={
@@ -158,9 +159,6 @@ DASH.layout = html.Div(
                 }
             }
         ),
-            ]
-        ),
-
     ]
 )
 
@@ -187,8 +185,11 @@ def update_graph_live(start_date, end_date, discord_server_id):
                     .filter(
                         func.date(Message.timestamp) >= start_date,
                         func.date(Message.timestamp) <= end_date,
-                        Server.id == discord_server_id)
+                        Server.id.in_(discord_server_id))
                     .group_by(Member.name))
+    messages = sorted(messages, key=lambda tup: tup[0])
+    messages.reverse()
+    print(messages)
     return {
         'data': [
             {
@@ -214,8 +215,9 @@ def update_graph_live(start_date, end_date, discord_server_id):
                [Input('message-date-picker-range', 'start_date'),
                 Input('message-date-picker-range', 'end_date'),
                 Input("discord-server-dropdown", 'value'),
+                Input("date-binning-slider", "value")
                 ])
-def update_timeline_messages(start_date, end_date, discord_server_id):
+def update_timeline_messages(start_date, end_date, discord_server_id, bin):
     # TODO: integrate slider
     messages = list(db.session.query(func.count(Message.id), Message.timestamp)
                     .join(Channel)
@@ -223,15 +225,16 @@ def update_timeline_messages(start_date, end_date, discord_server_id):
                     .filter(
                         func.date(Message.timestamp) >= start_date,
                         func.date(Message.timestamp) <= end_date,
-                        Server.id == discord_server_id)
-                    .group_by(func.strftime(date_bins[3], Message.timestamp)))
+                        Server.id.in_(discord_server_id))
+                    .group_by(func.strftime(date_bins[bin], Message.timestamp)))
     return {
         'data': [
             {
                 'y': [str(m[0]) for m in messages],
                 'x': [m[1] for m in messages],
                 'type': 'scatter',
-                'name': 'SF'
+                'name': 'SF',
+                'mode': 'lines+markers'
             },
         ],
         'layout': {
