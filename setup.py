@@ -61,7 +61,8 @@ def readme():
 setup(
     name="concord",
     version=VERSION,
-    description="Tool to scrape and analyze Discord servers",
+    description="A Discord bot and Python Dash server that generates graphs "
+                "visualizing member activity within Discord servers.",
     long_description=readme(),
     author="Nathan Klapstein",
     author_email="nklapste@ualberta.ca",

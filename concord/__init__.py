@@ -2,8 +2,8 @@
 
 """concord
 
-A service to scrape Discord servers and obtain health and social network
-analytics.
+A Discord bot and Python Dash server that generates graphs visualizing member
+activity within Discord servers.
 """
 
 __version__ = (0, 0, 0)
