@@ -10,7 +10,7 @@ from logging import getLogger
 from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
 
 from concord.common import add_log_parser
-from concord.server.server import APP
+from concord.server.server import APP, DEFAULT_SQLITE_PATH
 
 __log__ = getLogger(__name__)
 
@@ -22,13 +22,14 @@ def get_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    group = parser.add_argument_group("server")
-    group.add_argument("-d", "--host", default='localhost',
-                       help="Hostname to listen on")
-    group.add_argument("-p", "--port", default=8080, type=int,
-                       help="Port of the webserver")
-    group.add_argument("--debug", action="store_true",
-                       help="Run the server in Flask debug mode")
+    parser.add_argument("-d", "--host", default='localhost',
+                        help="Hostname to listen on")
+    parser.add_argument("-p", "--port", default=8080, type=int,
+                        help="Port of the webserver")
+    parser.add_argument("--debug", action="store_true",
+                        help="Run the server in Flask debug mode")
+    parser.add_argument("--database", default=DEFAULT_SQLITE_PATH,
+                        help="Path to the SQLITE database to store messages")
     add_log_parser(parser)
 
     return parser
@@ -39,7 +40,7 @@ def main(argv=sys.argv[1:]) -> int:
     args = parser.parse_args(argv)
 
     __log__.info("starting server: host: {} port: {}".format(args.host, args.port))
-
+    APP.config['SQLALCHEMY_DATABASE_URI'] = args.database
     if args.debug:
         APP.run(
             host=args.host,

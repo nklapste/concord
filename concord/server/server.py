@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """Flask server definition"""
@@ -6,7 +5,6 @@
 import os
 from datetime import datetime
 from logging import getLogger
-from threading import Thread
 
 import dash
 import dash_core_components as dcc
@@ -16,12 +14,11 @@ from flask import Flask, render_template, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 
-from concord.scraper.scraper import iter_server_messages_v2
-
 __log__ = getLogger(__name__)
 
 APP = Flask(__name__)
-APP.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test2.db'
+DEFAULT_SQLITE_PATH = 'sqlite:///concord.db'
+APP.config['SQLALCHEMY_DATABASE_URI'] = DEFAULT_SQLITE_PATH
 db = SQLAlchemy(APP)
 
 
@@ -67,7 +64,7 @@ def index():
 
 @APP.route('/static/<path:path>')
 def static_file(path):
-    static_folder = os.path.join(os.getcwd(), 'static')
+    static_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'static')
     return send_from_directory(static_folder, path)
 
 
@@ -82,8 +79,8 @@ DASH = dash.Dash(__name__, server=APP, external_stylesheets=external_stylesheets
 
 
 slider_dates = {
-    0: "year",
-    1: "month",
+    0: "Year",
+    1: "Month",
     2: "Day",
     3: "Hour",
     4: "Minute",
@@ -108,6 +105,7 @@ DASH.layout = html.Div(
             id='discord-server-dropdown',
             options=[{}],
             multi=True,
+            placeholder="Select a Discord Server..."
         ),
         dcc.DatePickerRange(
             id='message-date-picker-range',
@@ -130,13 +128,24 @@ DASH.layout = html.Div(
                 }
             }
         ),
-        dcc.Slider(
-            id="date-binning-slider",
-            min=0,
-            max=5,
-            marks=slider_dates,
-            value=2,
+        html.Div(
+            children=[
+                dcc.Slider(
+                    id="date-binning-slider",
+                    min=0,
+                    max=5,
+                    marks=slider_dates,
+                    value=2,
+                ),
+            ],
+            style={
+                "margin-top": "2em",
+                "margin-bottom": "2em",
+                "padding-left": "2em",
+                "padding-right": "2em"
+            }
         ),
+
         dcc.Graph(
             id='message-timeline-graph',
             figure={
@@ -258,7 +267,4 @@ DASH.scripts.config.serve_locally = True
 def dashboard():
     db.create_all()
     db.session.commit()
-    # TODO: need smarter way to init the database and keep it updated
-    t = Thread(target=iter_server_messages_v2, args=[db, 1000], daemon=True)
-    t.start()
     return DASH.index()
