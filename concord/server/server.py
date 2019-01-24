@@ -227,7 +227,6 @@ def update_graph_live(start_date, end_date, discord_server_id):
                 Input("date-binning-slider", "value")
                 ])
 def update_timeline_messages(start_date, end_date, discord_server_id, bin):
-    # TODO: integrate slider
     messages = list(db.session.query(func.count(Message.id), Message.timestamp)
                     .join(Channel)
                     .join(Server)
