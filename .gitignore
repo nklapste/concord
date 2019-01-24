@@ -109,3 +109,4 @@ venv.bak/
 token.txt
 token_bot.txt
 graph/
+*.db
