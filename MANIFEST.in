@@ -1,2 +1,6 @@
 include LICENSE
 include README.rst
+include concord/server/static/css/*
+include concord/server/static/images/*
+include concord/server/static/fonts/*
+include concord/server/templates/*
