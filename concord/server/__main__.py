@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""main entrypoint for the concord server"""
+"""argparse and main entrypoint script for the concord server"""
 
 import argparse
 import sys
@@ -36,6 +36,7 @@ def get_parser() -> argparse.ArgumentParser:
 
 
 def main(argv=sys.argv[1:]) -> int:
+    """main entry point for the concord server"""
     parser = get_parser()
     args = parser.parse_args(argv)
 

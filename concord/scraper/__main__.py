@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""main entrypoint for the concord Discord scraper"""
+"""argparse and main entrypoint script for the concord Discord scraper bot"""
 
 import argparse
 import sys
@@ -41,6 +41,7 @@ def get_parser() -> argparse.ArgumentParser:
 
 
 def main(argv=sys.argv[1:]) -> int:
+    """main entry point for the concord Discord scraper bot"""
     parser = get_parser()
     args = parser.parse_args(argv)
 
