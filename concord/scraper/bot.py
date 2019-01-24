@@ -67,7 +67,7 @@ async def scrape_messages(limit: int):
             latest_stored_message_datetime = get_latest_stored_message(db_channel)
             try:
                 async for message in client.logs_from(channel, after=latest_stored_message_datetime, limit=limit):
-                    __log__.debug("obtained message: {} author".format(
+                    __log__.debug("obtained message: {} author: {}".format(
                         message.id, message.author.id))
                     message = message
                     db_member = get_or_create(
